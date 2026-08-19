@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.env
+*.pdf
+DejaVuSans.ttf
+legalsathi_outputs/
+.DS_Store
+.vscode/
+.idea/
