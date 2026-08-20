@@ -1,8 +1,3 @@
-"""
-LegalSathi v3.0 — AI Agent for Consumer Rights & Legal Notice Generation
-Complete single-file application: Backend + Frontend + AI Pipeline
-"""
-
 import os
 import io
 import json
@@ -21,9 +16,6 @@ import fitz  # PyMuPDF
 from fpdf import FPDF
 from PIL import Image
 
-# ─────────────────────────────────────────────
-# CONSTANTS
-# ─────────────────────────────────────────────
 VISION_MODEL  = "qwen2.5vl:7b"
 REASON_MODEL  = "deepseek-r1:14b"
 OUTPUT_DIR    = Path(tempfile.gettempdir()) / "legalsathi_outputs"
@@ -46,10 +38,6 @@ def strip_markdown(text: str) -> str:
 app = FastAPI(title="LegalSathi", version="3.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
-
-# ─────────────────────────────────────────────
-# FILE PROCESSING
-# ─────────────────────────────────────────────
 
 def extract_pdf_text(file_bytes: bytes) -> str:
     """Extract text from a digital PDF using PyMuPDF (CPU, ~100% accuracy)."""
@@ -101,10 +89,6 @@ def route_file(file_bytes: bytes, filename: str, content_type: str) -> str:
     else:
         return extract_image_text(file_bytes, filename)
 
-
-# ─────────────────────────────────────────────
-# AGENT 1 — LEGAL CASE EVALUATOR
-# ─────────────────────────────────────────────
 
 AGENT1_SYSTEM = """You are a senior consumer rights lawyer in India with 20 years of experience.
 You specialize in the Consumer Protection Act 2019.
@@ -161,10 +145,6 @@ Analyze this case and respond with the JSON evaluation."""
     return json.loads(json_match.group())
 
 
-# ─────────────────────────────────────────────
-# AGENT 2 — LEGAL NOTICE DRAFTER
-# ─────────────────────────────────────────────
-
 AGENT2_SYSTEM = """You are a senior advocate with 20 years of consumer law experience in India.
 Draft a formal legal notice under the Consumer Protection Act 2019.
 The notice must be legally intimidating, factually precise, and professionally formatted.
@@ -218,7 +198,6 @@ Write this as a real lawyer would — firm, professional, legally precise."""
     raw = re.sub(r"<think>.*?</think>", "", raw, flags=re.DOTALL).strip()
     raw = strip_markdown(raw)
     return raw
-
 
 
 AGENT2_HINDI_SYSTEM = """आप भारत में 20 वर्षों के अनुभव वाले एक वरिष्ठ अधिवक्ता हैं।
@@ -276,10 +255,6 @@ def run_agent2_hindi(case_eval: dict, user_name: str, user_address: str,
     return raw
 
 
-# ─────────────────────────────────────────────
-# PDF GENERATOR
-# ─────────────────────────────────────────────
-
 def _get_unicode_font() -> tuple[str, str]:
     """
     Return (font_name, font_path) for a Unicode-capable TTF font.
@@ -312,8 +287,6 @@ def _get_unicode_font() -> tuple[str, str]:
 
 def generate_pdf(notice_text: str, user_name: str, company_name: str, lang: str = "en") -> Path:
     """Convert legal notice text to a formatted PDF using FPDF2 with Unicode support."""
-
-    # ── Unicode font setup ──────────────────────────────────────────
     font_name, font_path = _get_unicode_font()
 
     pdf = FPDF()
@@ -380,10 +353,6 @@ def generate_pdf(notice_text: str, user_name: str, company_name: str, lang: str 
     pdf.output(str(out_path))
     return out_path
 
-
-# ─────────────────────────────────────────────
-# API ROUTES
-# ─────────────────────────────────────────────
 
 @app.post("/api/extract")
 async def api_extract(files: list[UploadFile] = File(default=[])):
@@ -468,10 +437,6 @@ async def api_download(filename: str):
 async def health():
     return {"status": "ok", "models": {"vision": VISION_MODEL, "reason": REASON_MODEL}}
 
-
-# ─────────────────────────────────────────────
-# FRONTEND HTML
-# ─────────────────────────────────────────────
 
 HTML = r"""<!DOCTYPE html>
 <html lang="en">
@@ -1381,10 +1346,6 @@ function resetAll() {
 async def root():
     return HTMLResponse(HTML)
 
-
-# ─────────────────────────────────────────────
-# ENTRY POINT
-# ─────────────────────────────────────────────
 
 if __name__ == "__main__":
     import webbrowser, threading, time
